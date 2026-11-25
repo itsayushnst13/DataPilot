@@ -6,25 +6,29 @@ import { runInvestigation } from "../services/investigation.js";
 
 const router = Router();
 router.use(requireAuth);
-
 router.get("/:workspaceId", requireWorkspace, async (req, res, next) => {
   try {
     const rows = await prisma.investigation.findMany({ where: { workspaceId: req.workspace.id }, orderBy: { createdAt: "desc" }, take: 50 });
     res.json({ success: true, data: rows });
   } catch (e) { next(e); }
 });
-
 router.post("/:workspaceId", requireWorkspace, async (req, res, next) => {
   try {
-    const { question } = z.object({ question: z.string().trim().min(8).max(2000) }).parse(req.body);
+    const { question, sourceId } = z.object({
+      question: z.string().trim().min(8).max(2000),
+      sourceId: z.string().optional()
+    }).parse(req.body);
+    const source = sourceId
+      ? await prisma.dataSource.findFirst({ where: { id: sourceId, workspaceId: req.workspace.id } })
+      : await prisma.dataSource.findFirst({ where: { workspaceId: req.workspace.id }, orderBy: { createdAt: "asc" } });
+    if (!source) return res.status(400).json({ success: false, error: { code: "DATA_SOURCE_REQUIRED", message: "Connect a PostgreSQL data source before starting an investigation" } });
     const investigation = await prisma.investigation.create({
-      data: { workspaceId: req.workspace.id, title: question.slice(0, 72), question, status: "RUNNING", startedAt: new Date() }
+      data: { workspaceId: req.workspace.id, dataSourceId: source.id, title: question.slice(0, 72), question, status: "RUNNING", startedAt: new Date() }
     });
     res.status(202).json({ success: true, data: investigation });
     runInvestigation(investigation.id).catch(error => console.error("Investigation failed", error));
   } catch (e) { next(e); }
 });
-
 router.get("/:workspaceId/:id", requireWorkspace, async (req, res, next) => {
   try {
     const item = await prisma.investigation.findFirst({ where: { id: req.params.id, workspaceId: req.workspace.id } });
