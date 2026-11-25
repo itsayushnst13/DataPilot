@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  memberships  Membership[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Workspace {
+  id             String         @id @default(cuid())
+  name           String
+  slug           String         @unique
+  createdById    String
+  memberships    Membership[]
+  dataSources    DataSource[]
+  investigations Investigation[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Membership {
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        String    @default("ADMIN")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+model DataSource {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  type        String   @default("POSTGRESQL")
+  host        String
+  port        Int      @default(5432)
+  database    String
+  username    String
+  secret      String
+  status      String   @default("PENDING")
+  lastTestedAt DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+model Investigation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  title       String
+  question    String
+  status      String   @default("QUEUED")
+  answer      String?
+  sql         String?
+  evidence    Json?
+  chart       Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId, createdAt])
+}
