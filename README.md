@@ -124,7 +124,17 @@ npm run dev
 - Web: http://localhost:5173
 - API health: http://localhost:4000/api/v1/health
 
-### 5. Start the durable investigation worker\n\nIn another terminal (keep Redis running):\n\n```bash\nnpm run worker\n```\n\nBullMQ retries failed investigations up to three times with exponential backoff.\n\n### 6. Start the agent service
+### 5. Start the durable investigation worker
+
+In another terminal (keep Redis running):
+
+```bash
+npm run worker
+```
+
+BullMQ retries failed investigations up to three times with exponential backoff.
+
+### 6. Start the agent service
 
 In a second terminal:
 ```bash
@@ -141,7 +151,23 @@ uvicorn app.main:app --reload --app-dir services/agents --port 8000
 
 Agent health: http://localhost:8000/health
 
-## Demo database\n\nTo try the application without using business data, create a separate PostgreSQL database and run `examples/demo-database.sql` in it. It creates sample customers, products, orders and order items.\n\nCreate a dedicated read-only login (replace the password and database name):\n\n```sql\nCREATE ROLE datapilot_reader LOGIN PASSWORD 'replace-this-password';\nGRANT CONNECT ON DATABASE datapilot_demo TO datapilot_reader;\nGRANT USAGE ON SCHEMA public TO datapilot_reader;\nGRANT SELECT ON ALL TABLES IN SCHEMA public TO datapilot_reader;\nALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datapilot_reader;\n```\n\nConnect DataPilot with the `datapilot_reader` credentials.\n\n## First run
+## Demo database
+
+To try the application without using business data, create a separate PostgreSQL database and run `examples/demo-database.sql` in it. It creates sample customers, products, orders and order items.
+
+Create a dedicated read-only login (replace the password and database name):
+
+```sql
+CREATE ROLE datapilot_reader LOGIN PASSWORD 'replace-this-password';
+GRANT CONNECT ON DATABASE datapilot_demo TO datapilot_reader;
+GRANT USAGE ON SCHEMA public TO datapilot_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO datapilot_reader;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datapilot_reader;
+```
+
+Connect DataPilot with the `datapilot_reader` credentials.
+
+## First run
 
 1. Register a DataPilot account.
 2. Add a PostgreSQL data source.
