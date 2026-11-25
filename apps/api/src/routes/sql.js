@@ -11,13 +11,16 @@ const querySchema = z.object({ query: z.string().trim().min(6).max(12000) });
 export function assertReadOnlySql(sql) {
   const normalized = sql.trim().replace(/;\s*$/, "");
   if (!/^(select|with)\b/i.test(normalized)) throw Object.assign(new Error("Only SELECT queries are allowed"), { status: 400, code: "READ_ONLY_ONLY" });
+  if (/--|\/\*|\*\//.test(normalized)) throw Object.assign(new Error("SQL comments are not allowed"), { status: 400, code: "SQL_COMMENTS_NOT_ALLOWED" });
   if (normalized.includes(";") || /\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|execute|vacuum|refresh|set|reset|pg_sleep|pg_read_file|pg_ls_dir|dblink|lo_import|lo_export|pg_terminate_backend|pg_cancel_backend|set_config)\b/i.test(normalized)) {
     throw Object.assign(new Error("Query contains a prohibited operation"), { status: 400, code: "UNSAFE_SQL" });
   }
+  if (/\blimit\s+all\b/i.test(normalized)) throw Object.assign(new Error("LIMIT ALL is not allowed"), { status: 400, code: "UNBOUNDED_QUERY" });
   const limitMatch = normalized.match(/\blimit\s+(\d+)/i);
   if (limitMatch && Number(limitMatch[1]) > 500) throw Object.assign(new Error("LIMIT cannot exceed 500 rows"), { status: 400, code: "ROW_LIMIT_EXCEEDED" });
   return limitMatch ? normalized : normalized + " LIMIT 501";
 }
+
 async function getSource(workspaceId, sourceId) {
   const source = await prisma.dataSource.findFirst({ where: { id: sourceId, workspaceId } });
   if (!source) throw Object.assign(new Error("Data source not found"), { status: 404, code: "SOURCE_NOT_FOUND" });
