@@ -1,0 +1,29 @@
+name: DataPilot CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/datapilot?schema=public
+      JWT_SECRET: ci-test-secret-that-is-at-least-32-characters
+      DATA_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      INTERNAL_SERVICE_TOKEN: ci-internal-token
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npm run db:generate
+      - run: npm test
+      - run: npm run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r services/agents/requirements.txt
+      - run: python -m compileall -q services/agents/app
