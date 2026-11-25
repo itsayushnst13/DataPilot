@@ -14,7 +14,7 @@ const registerSchema = z.object({
 });
 const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1).max(128) });
 const signToken = (user) => jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "12h", issuer: "datapilot-api", audience: "datapilot-web" });
-const cookieOptions = () => ({ httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/api/v1", maxAge: 12 * 60 * 60 * 1000 });
+const cookieOptions = () => ({ httpOnly: true, secure: process.env.COOKIE_SECURE === "true" || (process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false"), sameSite: "strict", path: "/api/v1", maxAge: 12 * 60 * 60 * 1000 });
 const setSession = (res, user) => res.cookie("datapilot_session", signToken(user), cookieOptions());
 
 router.post("/register", async (req, res, next) => {
