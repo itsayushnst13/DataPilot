@@ -167,6 +167,37 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datapilot_re
 
 Connect DataPilot with the `datapilot_reader` credentials.
 
+
+## Production deployment with Docker Compose
+
+The repository includes a full multi-container deployment: web (Nginx), Express API, Python agent service, BullMQ worker, PostgreSQL and Redis.
+
+1. Copy the environment templates:
+   ```bash
+   cp .env.production.example .env.production
+   cp apps/api/.env.example apps/api/.env
+   cp services/agents/.env.example services/agents/.env
+   ```
+2. Generate URL-safe passwords and secrets:
+   ```bash
+   openssl rand -hex 24
+   openssl rand -hex 32
+   ```
+   Put the first generated values in `.env.production` for PostgreSQL and Redis. Set a separate `JWT_SECRET`, 64-character hex `DATA_ENCRYPTION_KEY`, and `INTERNAL_SERVICE_TOKEN` in `apps/api/.env`. Put the exact same internal token and your Gemini key in `services/agents/.env`.
+3. Start all services:
+   ```bash
+   docker compose --env-file .env.production -f docker-compose.production.yml up --build -d
+   ```
+4. Open `http://localhost:8080`. Inspect service status with:
+   ```bash
+   docker compose --env-file .env.production -f docker-compose.production.yml ps
+   docker compose --env-file .env.production -f docker-compose.production.yml logs -f api worker agents
+   ```
+
+The API container applies Prisma migrations before starting. PostgreSQL and Redis are internal to the Compose network and are not published to the host. Put TLS termination and an HTTPS reverse proxy in front of the web service before exposing it publicly. Back up the PostgreSQL volume and protect all environment files.
+
+For local development, continue using `docker compose up -d postgres redis`, `npm run db:push`, and the separate API/worker/agent commands described above.
+
 ## First run
 
 1. Register a DataPilot account.
