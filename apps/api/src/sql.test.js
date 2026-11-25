@@ -16,7 +16,11 @@ describe("read-only SQL policy", () => {
   it("rejects dangerous PostgreSQL functions", () => {
     assert.throws(() => assertReadOnlySql("SELECT pg_read_file('/etc/passwd')"), /prohibited operation/);
   });
-  it("rejects SQL comments and unbounded LIMIT ALL", () => {\n    assert.throws(() => assertReadOnlySql("SELECT 1 -- bypass limit"), /SQL comments are not allowed/);\n    assert.throws(() => assertReadOnlySql("SELECT * FROM orders LIMIT ALL"), /LIMIT ALL is not allowed/);\n  });\n  it("rejects oversized limits", () => {
+  it("rejects SQL comments and unbounded LIMIT ALL", () => {
+    assert.throws(() => assertReadOnlySql("SELECT 1 -- bypass limit"), /SQL comments are not allowed/);
+    assert.throws(() => assertReadOnlySql("SELECT * FROM orders LIMIT ALL"), /LIMIT ALL is not allowed/);
+  });
+  it("rejects oversized limits", () => {
     assert.throws(() => assertReadOnlySql("SELECT * FROM orders LIMIT 999999"), /LIMIT cannot exceed 500 rows/);
   });
 });
