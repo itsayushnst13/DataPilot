@@ -1,0 +1,17 @@
+CREATE TABLE "User" ("id" TEXT NOT NULL,"name" TEXT NOT NULL,"email" TEXT NOT NULL,"passwordHash" TEXT NOT NULL,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "User_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Workspace" ("id" TEXT NOT NULL,"name" TEXT NOT NULL,"slug" TEXT NOT NULL,"createdById" TEXT,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "Workspace_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Membership" ("id" TEXT NOT NULL,"userId" TEXT NOT NULL,"workspaceId" TEXT NOT NULL,"role" TEXT NOT NULL DEFAULT 'ADMIN',"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "Membership_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "DataSource" ("id" TEXT NOT NULL,"workspaceId" TEXT NOT NULL,"name" TEXT NOT NULL,"type" TEXT NOT NULL DEFAULT 'POSTGRESQL',"host" TEXT NOT NULL,"port" INTEGER NOT NULL DEFAULT 5432,"database" TEXT NOT NULL,"username" TEXT NOT NULL,"secret" TEXT NOT NULL,"status" TEXT NOT NULL DEFAULT 'PENDING',"lastTestedAt" TIMESTAMP(3),"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "DataSource_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Investigation" ("id" TEXT NOT NULL,"workspaceId" TEXT NOT NULL,"title" TEXT NOT NULL,"question" TEXT NOT NULL,"status" TEXT NOT NULL DEFAULT 'QUEUED',"answer" TEXT,"sql" TEXT,"dataSourceId" TEXT,"evidence" JSONB,"chart" JSONB,"error" TEXT,"startedAt" TIMESTAMP(3),"completedAt" TIMESTAMP(3),"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "Investigation_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "Workspace_slug_key" ON "Workspace"("slug");
+CREATE UNIQUE INDEX "Membership_userId_workspaceId_key" ON "Membership"("userId","workspaceId");
+CREATE INDEX "Membership_workspaceId_idx" ON "Membership"("workspaceId");
+CREATE INDEX "DataSource_workspaceId_idx" ON "DataSource"("workspaceId");
+CREATE INDEX "Investigation_workspaceId_createdAt_idx" ON "Investigation"("workspaceId","createdAt");
+CREATE INDEX "Investigation_dataSourceId_idx" ON "Investigation"("dataSourceId");
+ALTER TABLE "Membership" ADD CONSTRAINT "Membership_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Membership" ADD CONSTRAINT "Membership_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DataSource" ADD CONSTRAINT "DataSource_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Investigation" ADD CONSTRAINT "Investigation_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Investigation" ADD CONSTRAINT "Investigation_dataSourceId_fkey" FOREIGN KEY ("dataSourceId") REFERENCES "DataSource"("id") ON DELETE SET NULL ON UPDATE CASCADE;
