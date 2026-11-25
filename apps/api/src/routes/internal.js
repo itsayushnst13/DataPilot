@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { withSourceClient } from "../services/connection.js";
+import { assertReadOnlySql } from "./sql.js";
 
 const router = Router();
 function verifyService(req, res, next) {
@@ -20,12 +21,10 @@ router.get("/data-sources/:sourceId/schema", async (req, res, next) => {
 router.post("/data-sources/:sourceId/query", async (req, res, next) => {
   try {
     const { workspaceId, query } = req.body || {};
-    if (typeof query !== "string" || query.length > 12000 || !/^\s*(select|with)\b/i.test(query) || query.includes(";") || /\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|execute|vacuum|refresh|set|reset|pg_sleep|pg_read_file|pg_ls_dir|dblink|lo_import|lo_export|pg_terminate_backend|pg_cancel_backend|set_config)\b/i.test(query)) {
-      return res.status(400).json({ success: false, error: { code: "UNSAFE_SQL", message: "Only a single safe read-only SELECT query is allowed" } });
+    if (typeof query !== "string" || query.length > 12000) {
+      return res.status(400).json({ success: false, error: { code: "INVALID_QUERY", message: "Query must be a string under 12,000 characters" } });
     }
-    const limit = query.match(/\blimit\s+(\d+)/i);
-    if (limit && Number(limit[1]) > 500) return res.status(400).json({ success: false, error: { code: "ROW_LIMIT_EXCEEDED", message: "LIMIT cannot exceed 500 rows" } });
-    const safeQuery = limit ? query : query + " LIMIT 501";
+    const safeQuery = assertReadOnlySql(query);
     const source = await prisma.dataSource.findFirst({ where: { id: req.params.sourceId, workspaceId: String(workspaceId || "") } });
     if (!source) return res.status(404).json({ success: false, error: { code: "SOURCE_NOT_FOUND", message: "Data source not found" } });
     const result = await withSourceClient(source, async client => {
