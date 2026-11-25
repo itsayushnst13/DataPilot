@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireWorkspace } from "../middleware/auth.js";
-import { investigationQueue } from "../queues/investigation.queue.js";
+import { getInvestigationQueue } from "../queues/investigation.queue.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -26,7 +26,7 @@ router.post("/:workspaceId", requireWorkspace, async (req, res, next) => {
       data: { workspaceId: req.workspace.id, dataSourceId: source.id, title: question.slice(0, 72), question, status: "RUNNING", startedAt: new Date() }
     });
     try {
-      await investigationQueue.add("investigate", { investigationId: investigation.id }, { jobId: investigation.id });
+      await getInvestigationQueue().add("investigate", { investigationId: investigation.id }, { jobId: investigation.id });
     } catch (queueError) {
       await prisma.investigation.update({ where: { id: investigation.id }, data: { status: "FAILED", error: "Could not enqueue investigation. Check Redis availability.", completedAt: new Date() } });
       throw queueError;
