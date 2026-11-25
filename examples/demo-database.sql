@@ -55,15 +55,15 @@ INSERT INTO products (product_name, category, unit_price) VALUES
 ('Noise Cancelling Headphones','Audio',6999.00);
 
 INSERT INTO orders (customer_id, order_date, status) VALUES
-(1,'2025-10-02','completed'),(2,'2025-10-05','completed'),
-(3,'2025-10-12','completed'),(4,'2025-10-19','cancelled'),
-(5,'2025-11-01','completed'),(6,'2025-11-03','completed'),
-(7,'2025-11-08','refunded'),(8,'2025-11-12','completed'),
-(9,'2025-11-15','completed'),(10,'2025-11-20','completed'),
-(1,'2025-12-02','completed'),(2,'2025-12-04','completed'),
-(3,'2025-12-08','completed'),(5,'2025-12-10','completed'),
-(6,'2025-12-12','completed'),(8,'2025-12-15','cancelled'),
-(9,'2026-01-03','completed'),(10,'2026-01-06','completed');
+(1,'2026-09-02','completed'),(2,'2026-09-05','completed'),
+(3,'2026-09-12','completed'),(4,'2026-09-19','cancelled'),
+(5,'2026-10-01','completed'),(6,'2026-10-03','completed'),
+(7,'2026-10-08','refunded'),(8,'2026-10-12','completed'),
+(9,'2026-10-15','completed'),(10,'2026-10-20','completed'),
+(1,'2026-11-02','completed'),(2,'2026-11-04','completed'),
+(3,'2026-11-08','completed'),(5,'2026-11-10','completed'),
+(6,'2026-11-12','completed'),(8,'2026-11-15','cancelled'),
+(9,'2026-11-18','completed'),(10,'2026-11-20','completed');
 
 INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
 (1,1,2,799),(1,4,1,1299),(2,2,1,2499),(2,3,1,1899),
