@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -24,7 +25,7 @@ router.post("/register", async (req, res, next) => {
     const user = await prisma.user.create({
       data: {
         name: input.name, email, passwordHash,
-        memberships: { create: { role: "ADMIN", workspace: { create: { name: input.name + "'s workspace", slug: "ws-" + crypto.randomUUID() } } } }
+        memberships: { create: { role: "ADMIN", workspace: { create: { name: input.name + "'s workspace", slug: "ws-" + randomUUID() } } } }
       },
       select: { id: true, name: true, email: true, memberships: { select: { workspace: { select: { id: true, name: true, slug: true } } } } }
     });
