@@ -8,7 +8,7 @@ const router = Router();
 router.use(requireAuth);
 const querySchema = z.object({ query: z.string().trim().min(6).max(12000) });
 
-function assertReadOnlySql(sql) {
+export function assertReadOnlySql(sql) {
   const normalized = sql.trim().replace(/;\\s*$/, "");
   if (!/^(select|with)\\b/i.test(normalized)) throw Object.assign(new Error("Only SELECT queries are allowed"), { status: 400, code: "READ_ONLY_ONLY" });
   if (normalized.includes(";") || /\\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|execute|vacuum|refresh|set|reset|pg_sleep|pg_read_file|pg_ls_dir|dblink|lo_import|lo_export|pg_terminate_backend|pg_cancel_backend|set_config)\\b/i.test(normalized)) {
