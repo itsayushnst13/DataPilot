@@ -21,7 +21,7 @@ model Workspace {
   id             String         @id @default(cuid())
   name           String
   slug           String         @unique
-  createdById    String
+  createdById    String?
   memberships    Membership[]
   dataSources    DataSource[]
   investigations Investigation[]
