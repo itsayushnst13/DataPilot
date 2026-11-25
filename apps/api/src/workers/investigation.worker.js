@@ -24,3 +24,18 @@ worker.on("failed", async (job, error) => {
 });
 worker.on("error", error => console.error("Investigation worker error:", error));
 console.log("DataPilot investigation worker started");
+
+async function shutdown(signal) {
+  console.log(`Received ${signal}; stopping investigation worker`);
+  try {
+    await worker.close();
+    await getRedisConnection().quit();
+    await prisma.$disconnect();
+    process.exit(0);
+  } catch (error) {
+    console.error("Worker shutdown failed", error);
+    process.exit(1);
+  }
+}
+process.once("SIGTERM", () => shutdown("SIGTERM"));
+process.once("SIGINT", () => shutdown("SIGINT"));
