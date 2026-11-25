@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { createApp } from "./app.js";
 import { prisma } from "./lib/prisma.js";
+import { closeInvestigationQueue } from "./queues/investigation.queue.js";
+import { closeRedisConnection } from "./queues/redis.js";
 
 const port = Number(process.env.PORT || 4000);
 const app = createApp();
@@ -17,6 +19,8 @@ async function shutdown(signal) {
   forceExit.unref();
   server.close(async error => {
     try {
+      await closeInvestigationQueue();
+      await closeRedisConnection();
       await prisma.$disconnect();
       if (error) throw error;
       clearTimeout(forceExit);
