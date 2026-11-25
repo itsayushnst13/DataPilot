@@ -20,10 +20,10 @@ router.get("/data-sources/:sourceId/schema", async (req, res, next) => {
 router.post("/data-sources/:sourceId/query", async (req, res, next) => {
   try {
     const { workspaceId, query } = req.body || {};
-    if (typeof query !== "string" || query.length > 12000 || !/^\\s*(select|with)\\b/i.test(query) || query.includes(";") || /\\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|execute|vacuum|refresh|set|reset|pg_sleep|pg_read_file|pg_ls_dir|dblink|lo_import|lo_export|pg_terminate_backend|pg_cancel_backend|set_config)\\b/i.test(query)) {
+    if (typeof query !== "string" || query.length > 12000 || !/^\s*(select|with)\b/i.test(query) || query.includes(";") || /\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|execute|vacuum|refresh|set|reset|pg_sleep|pg_read_file|pg_ls_dir|dblink|lo_import|lo_export|pg_terminate_backend|pg_cancel_backend|set_config)\b/i.test(query)) {
       return res.status(400).json({ success: false, error: { code: "UNSAFE_SQL", message: "Only a single safe read-only SELECT query is allowed" } });
     }
-    const limit = query.match(/\\blimit\\s+(\\d+)/i);
+    const limit = query.match(/\blimit\s+(\d+)/i);
     if (limit && Number(limit[1]) > 501) return res.status(400).json({ success: false, error: { code: "ROW_LIMIT_EXCEEDED", message: "LIMIT cannot exceed 500 rows" } });
     const safeQuery = limit ? query : query + " LIMIT 501";
     const source = await prisma.dataSource.findFirst({ where: { id: req.params.sourceId, workspaceId: String(workspaceId || "") } });
