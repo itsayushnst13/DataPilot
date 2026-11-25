@@ -11,7 +11,7 @@
 | Web | React 18, JavaScript, Vite, Tailwind CSS, Recharts |
 | API | Node.js 20, Express, JavaScript ES modules, Zod |
 | Database | PostgreSQL 16, Prisma |
-| Authentication | bcrypt password hashing, signed JWT bearer tokens |
+| Authentication | bcrypt password hashing, signed JWT HttpOnly cookies |
 | Database connections | node-postgres, AES-256-GCM credential encryption |
 | Agent orchestration | Python 3.11, LangGraph, Gemini |
 | Analytics | Pandas, NumPy |
@@ -183,7 +183,7 @@ The repository includes a full multi-container deployment: web (Nginx), Express 
    openssl rand -hex 24
    openssl rand -hex 32
    ```
-   Put the first generated values in `.env.production` for PostgreSQL and Redis. Set a separate `JWT_SECRET`, 64-character hex `DATA_ENCRYPTION_KEY`, and `INTERNAL_SERVICE_TOKEN` in `apps/api/.env`. Put the exact same internal token and your Gemini key in `services/agents/.env`.
+   Put the first generated values in `.env.production` for PostgreSQL and Redis. Set a separate `JWT_SECRET`, 64-character hex `DATA_ENCRYPTION_KEY`, `INTERNAL_SERVICE_TOKEN`, and `COOKIE_SECURE=false` for localhost HTTP in `apps/api/.env`. Set `COOKIE_SECURE=true` when HTTPS is enabled. Put the exact same internal token and your Gemini key in `services/agents/.env`.
 3. Start all services:
    ```bash
    docker compose --env-file .env.production -f docker-compose.production.yml up --build -d
@@ -222,7 +222,7 @@ For local development, continue using `docker compose up -d postgres redis`, `np
 | GET/POST | `/api/v1/investigations/:workspaceId` | List/start investigations |
 | GET | `/api/v1/investigations/:workspaceId/:id` | Read investigation result |
 
-All workspace routes require a valid JWT and membership in the requested workspace. Internal agent endpoints require the shared service token.
+All workspace routes require a valid session cookie and membership in the requested workspace. Unsafe HTTP methods are origin-checked; cookies are HttpOnly and SameSite=Strict. Internal agent endpoints require the shared service token.
 
 ## Safety and operational notes
 
@@ -233,7 +233,7 @@ All workspace routes require a valid JWT and membership in the requested workspa
 - Use a read-only database role as the primary security boundary. SQL string checks are defense-in-depth, not a replacement for database permissions.
 - Set `DATASOURCE_SSL=true` for TLS-enabled remote PostgreSQL services.
 - Configure network egress restrictions and secret management before production deployment.
-- JWT is currently stored by the browser client; a production deployment should move to secure, HttpOnly cookies with CSRF protections and add refresh/revocation flows.
+- Sessions use HttpOnly, SameSite=Strict cookies and origin checks. Set `COOKIE_SECURE=true` behind HTTPS; use `COOKIE_SECURE=false` only for local HTTP development. Session revocation and refresh flows remain future hardening.
 - Investigation jobs run through Redis/BullMQ with three attempts and exponential backoff; deploy at least one worker process and monitor failed jobs.
 
 ## Verification
