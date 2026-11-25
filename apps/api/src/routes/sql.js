@@ -11,10 +11,12 @@ const querySchema = z.object({ query: z.string().trim().min(6).max(12000) });
 function assertReadOnlySql(sql) {
   const normalized = sql.trim().replace(/;\s*$/, "");
   if (!/^(select|with)\b/i.test(normalized)) throw Object.assign(new Error("Only SELECT queries are allowed"), { status: 400, code: "READ_ONLY_ONLY" });
-  if (normalized.includes(";") || /\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|execute|vacuum|refresh|set|reset|pg_sleep)\b/i.test(normalized)) {
+  if (normalized.includes(";") || /\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|execute|vacuum|refresh|set|reset|pg_sleep|pg_read_file|pg_ls_dir|dblink|lo_import|lo_export|pg_terminate_backend|pg_cancel_backend|set_config)\b/i.test(normalized)) {
     throw Object.assign(new Error("Query contains a prohibited operation"), { status: 400, code: "UNSAFE_SQL" });
   }
-  const limitMatch = normalized.match(/\\blimit\\s+(\\d+)/i);\n  if (limitMatch && Number(limitMatch[1]) > 501) throw Object.assign(new Error("LIMIT cannot exceed 500 rows"), { status: 400, code: "ROW_LIMIT_EXCEEDED" });\n  return limitMatch ? normalized : normalized + " LIMIT 501";
+  const limitMatch = normalized.match(/\blimit\s+(\d+)/i);
+  if (limitMatch && Number(limitMatch[1]) > 501) throw Object.assign(new Error("LIMIT cannot exceed 500 rows"), { status: 400, code: "ROW_LIMIT_EXCEEDED" });
+  return limitMatch ? normalized : normalized + " LIMIT 501";
 }
 async function getSource(workspaceId, sourceId) {
   const source = await prisma.dataSource.findFirst({ where: { id: sourceId, workspaceId } });
@@ -42,10 +44,10 @@ router.get("/:workspaceId/:sourceId/schema", requireWorkspace, async (req, res, 
   try {
     const source = await getSource(req.workspace.id, req.params.sourceId);
     const tables = await withSourceClient(source, async client => {
-      const result = await client.query(`SELECT table_schema, table_name, column_name, data_type
+      const result = await client.query(\`SELECT table_schema, table_name, column_name, data_type
         FROM information_schema.columns
         WHERE table_schema NOT IN ('pg_catalog','information_schema')
-        ORDER BY table_schema, table_name, ordinal_position`);
+        ORDER BY table_schema, table_name, ordinal_position\`);
       return result.rows;
     });
     res.json({ success: true, data: tables });
