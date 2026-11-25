@@ -203,7 +203,7 @@ All workspace routes require a valid JWT and membership in the requested workspa
 - Set `DATASOURCE_SSL=true` for TLS-enabled remote PostgreSQL services.
 - Configure network egress restrictions and secret management before production deployment.
 - JWT is currently stored by the browser client; a production deployment should move to secure, HttpOnly cookies with CSRF protections and add refresh/revocation flows.
-- Redis is provisioned for the next background-job phase; current investigation execution is asynchronous in the API process and should be moved to a durable queue before production scale.
+- Investigation jobs run through Redis/BullMQ with three attempts and exponential backoff; deploy at least one worker process and monitor failed jobs.
 
 ## Verification
 
@@ -216,9 +216,8 @@ Python agent package installation and runtime should also be verified in its own
 
 ## Remaining production-hardening work
 
-- Durable Redis/BullMQ job processing and retries
 - Connection lifecycle management and credential rotation
-- Secure HttpOnly session cookies, refresh tokens and rate limiting
-- Full automated API, agent and browser end-to-end test suites
+- Secure HttpOnly session cookies, refresh tokens and token revocation
+- Full automated API integration and browser end-to-end test suites
 - Agent execution traces, per-step latency and token/cost telemetry
 - Report export, scheduling and deployment pipelines
