@@ -16,3 +16,10 @@ export function getInvestigationQueue() {
   }
   return queue;
 }
+
+export async function closeInvestigationQueue() {
+  if (queue) {
+    await queue.close();
+    queue = null;
+  }
+}
