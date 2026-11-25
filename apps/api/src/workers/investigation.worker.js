@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Worker } from "bullmq";
 import { prisma } from "../lib/prisma.js";
-import { redisConnection } from "../queues/redis.js";
+import { getRedisConnection } from "../queues/redis.js";
 import { runInvestigation } from "../services/investigation.js";
 
 const worker = new Worker("datapilot-investigations", async job => {
@@ -10,7 +10,7 @@ const worker = new Worker("datapilot-investigations", async job => {
     data: { status: "RUNNING", error: null, startedAt: new Date() }
   });
   await runInvestigation(job.data.investigationId);
-}, { connection: redisConnection, concurrency: 3 });
+}, { connection: getRedisConnection(), concurrency: 3 });
 
 worker.on("completed", job => console.log("Investigation completed:", job.data.investigationId));
 worker.on("failed", async (job, error) => {
