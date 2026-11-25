@@ -27,7 +27,7 @@ async def planner(state: State):
     if not os.getenv("GEMINI_API_KEY"):
         raise ValueError("GEMINI_API_KEY is required to run AI investigations")
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel(os.getenv("GEMINI_MODEL", "gemini-1.5-flash"))
+    model = genai.GenerativeModel(os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
     schema_text = json.dumps(state["schema"], ensure_ascii=False)
     prompt = f"""You are the SQL planning agent for DataPilot. Generate ONE read-only PostgreSQL SELECT query.
 Question: {state['question']}
@@ -86,7 +86,7 @@ async def verifier(state: State):
         "rowCount": len(state.get("rows", []))
     }]
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel(os.getenv("GEMINI_MODEL", "gemini-1.5-flash"))
+    model = genai.GenerativeModel(os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
     prompt = f"""Answer the business question using only this query result summary. Never invent facts. If data is insufficient, say so.
 Question: {state['question']}
 Summary: {json.dumps(state['analysis'], default=str)}
