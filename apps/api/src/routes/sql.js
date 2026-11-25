@@ -15,7 +15,7 @@ export function assertReadOnlySql(sql) {
     throw Object.assign(new Error("Query contains a prohibited operation"), { status: 400, code: "UNSAFE_SQL" });
   }
   const limitMatch = normalized.match(/\blimit\s+(\d+)/i);
-  if (limitMatch && Number(limitMatch[1]) > 501) throw Object.assign(new Error("LIMIT cannot exceed 500 rows"), { status: 400, code: "ROW_LIMIT_EXCEEDED" });
+  if (limitMatch && Number(limitMatch[1]) > 500) throw Object.assign(new Error("LIMIT cannot exceed 500 rows"), { status: 400, code: "ROW_LIMIT_EXCEEDED" });
   return limitMatch ? normalized : normalized + " LIMIT 501";
 }
 async function getSource(workspaceId, sourceId) {
