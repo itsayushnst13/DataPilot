@@ -9,6 +9,7 @@ import dataSourceRoutes from "./routes/data-sources.js";
 import sqlRoutes from "./routes/sql.js";
 import investigationRoutes from "./routes/investigations.js";
 import healthRoutes from "./routes/health.js";
+import internalRoutes from "./routes/internal.js";
 
 export function createApp() {
   const app = express();
@@ -27,6 +28,7 @@ export function createApp() {
   app.use("/api/v1/data-sources", dataSourceRoutes);
   app.use("/api/v1/sql", sqlRoutes);
   app.use("/api/v1/investigations", investigationRoutes);
+  app.use("/api/v1/internal", internalRoutes);
 
   app.use((_req, res) => res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Route not found" } }));
   app.use((error, _req, res, _next) => {
