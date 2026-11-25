@@ -64,12 +64,15 @@ def analyst(state: State):
     if len(numeric.columns) >= 1 and len(frame) > 1:
         label_col = next((c for c in frame.columns if c not in numeric.columns), None)
         value_col = numeric.columns[0]
+        chart_frame = frame.head(20).copy()
+        if not label_col:
+            chart_frame["row"] = chart_frame.index.astype(str)
         chart = {
             "type": "bar",
             "title": f"{value_col} by {label_col}" if label_col else f"{value_col} distribution",
-            "xKey": label_col or frame.index.name or "row",
+            "xKey": label_col or "row",
             "yKey": value_col,
-            "data": frame.head(20).assign(**({} if label_col else {"row": frame.index.astype(str)})).where(pd.notnull(frame), None).to_dict(orient="records")
+            "data": chart_frame.where(pd.notnull(chart_frame), None).to_dict(orient="records")
         }
     return {"analysis": summary, "chart": chart}
 
