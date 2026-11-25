@@ -10,6 +10,7 @@ import sqlRoutes from "./routes/sql.js";
 import investigationRoutes from "./routes/investigations.js";
 import healthRoutes from "./routes/health.js";
 import internalRoutes from "./routes/internal.js";
+import { apiLimiter, authLimiter } from "./middleware/rate-limit.js";
 
 export function createApp() {
   const app = express();
@@ -18,12 +19,13 @@ export function createApp() {
   app.use(cors({ origin: process.env.WEB_ORIGIN || "http://localhost:5173", credentials: false }));
   app.use(express.json({ limit: "1mb" }));
   app.use(pino({ redact: ["req.headers.authorization", "req.body.password", "req.body.token"] }));
+  app.use("/api/v1", apiLimiter);
 
   app.get("/api/v1/health", (_req, res) => res.status(200).json({
     success: true, data: { service: "datapilot-api", status: "alive", timestamp: new Date().toISOString() }
   }));
   app.use("/api/v1/health/details", healthRoutes);
-  app.use("/api/v1/auth", authRoutes);
+  app.use("/api/v1/auth", authLimiter, authRoutes);
   app.use("/api/v1/workspaces", workspaceRoutes);
   app.use("/api/v1/data-sources", dataSourceRoutes);
   app.use("/api/v1/sql", sqlRoutes);
