@@ -53,7 +53,12 @@ async def executor(state: State):
 
 def analyst(state: State):
     frame = pd.DataFrame(state["rows"], columns=state["columns"])
-    for column in frame.columns:\n        converted = pd.to_numeric(frame[column], errors="coerce")\n        present = frame[column].notna().sum()\n        if present and converted.notna().sum() / present >= 0.8:\n            frame[column] = converted\n    numeric = frame.select_dtypes(include="number")
+    for column in frame.columns:
+        converted = pd.to_numeric(frame[column], errors="coerce")
+        present = frame[column].notna().sum()
+        if present and converted.notna().sum() / present >= 0.8:
+            frame[column] = converted
+    numeric = frame.select_dtypes(include="number")
     summary = {
         "rowCount": len(frame),
         "columns": state["columns"],
