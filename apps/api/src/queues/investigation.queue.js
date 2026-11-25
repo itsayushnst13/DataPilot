@@ -1,12 +1,18 @@
 import { Queue } from "bullmq";
-import { redisConnection } from "./redis.js";
+import { getRedisConnection } from "./redis.js";
 
-export const investigationQueue = new Queue("datapilot-investigations", {
-  connection: redisConnection,
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: { type: "exponential", delay: 2000 },
-    removeOnComplete: { count: 1000 },
-    removeOnFail: { count: 5000 }
+let queue;
+export function getInvestigationQueue() {
+  if (!queue) {
+    queue = new Queue("datapilot-investigations", {
+      connection: getRedisConnection(),
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 2000 },
+        removeOnComplete: { count: 1000 },
+        removeOnFail: { count: 5000 }
+      }
+    });
   }
-});
+  return queue;
+}
