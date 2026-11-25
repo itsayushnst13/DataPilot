@@ -4,7 +4,7 @@ export async function runInvestigation(id) {
   try {
     const item = await prisma.investigation.findUnique({ where: { id } });
     if (!item) return;
-    const source = await prisma.dataSource.findFirst({ where: { workspaceId: item.workspaceId, status: { in: ["CONNECTED", "PENDING"] } }, orderBy: { createdAt: "asc" } });
+    const source = item.dataSourceId\n      ? await prisma.dataSource.findFirst({ where: { id: item.dataSourceId, workspaceId: item.workspaceId } })\n      : await prisma.dataSource.findFirst({ where: { workspaceId: item.workspaceId }, orderBy: { createdAt: "asc" } });
     if (!source) throw new Error("Connect a PostgreSQL data source before starting an investigation.");
     const agentUrl = process.env.AGENT_SERVICE_URL;
     if (!agentUrl) throw new Error("Agent service is not configured. Start services/agents and set AGENT_SERVICE_URL.");
