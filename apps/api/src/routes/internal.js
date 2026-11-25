@@ -24,7 +24,7 @@ router.post("/data-sources/:sourceId/query", async (req, res, next) => {
       return res.status(400).json({ success: false, error: { code: "UNSAFE_SQL", message: "Only a single safe read-only SELECT query is allowed" } });
     }
     const limit = query.match(/\blimit\s+(\d+)/i);
-    if (limit && Number(limit[1]) > 501) return res.status(400).json({ success: false, error: { code: "ROW_LIMIT_EXCEEDED", message: "LIMIT cannot exceed 500 rows" } });
+    if (limit && Number(limit[1]) > 500) return res.status(400).json({ success: false, error: { code: "ROW_LIMIT_EXCEEDED", message: "LIMIT cannot exceed 500 rows" } });
     const safeQuery = limit ? query : query + " LIMIT 501";
     const source = await prisma.dataSource.findFirst({ where: { id: req.params.sourceId, workspaceId: String(workspaceId || "") } });
     if (!source) return res.status(404).json({ success: false, error: { code: "SOURCE_NOT_FOUND", message: "Data source not found" } });
