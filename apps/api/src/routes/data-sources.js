@@ -3,6 +3,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireWorkspace } from "../middleware/auth.js";
+import { withSourceClient } from "../services/connection.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -31,10 +32,14 @@ router.get("/:workspaceId", requireWorkspace, async (req, res, next) => {
 router.post("/:workspaceId", requireWorkspace, async (req, res, next) => {
   try {
     const input = schema.parse(req.body);
+    const connection = {
+      host: input.host, port: input.port, database: input.database, username: input.username,
+      secret: encrypt(input.password)
+    };
+    await withSourceClient(connection, async client => client.query("SELECT 1"));
     const source = await prisma.dataSource.create({ data: {
-      workspaceId: req.workspace.id, name: input.name, host: input.host, port: input.port,
-      database: input.database, username: input.username, secret: encrypt(input.password)
-    }, select: { id: true, name: true, type: true, host: true, port: true, database: true, username: true, status: true, createdAt: true } });
+      workspaceId: req.workspace.id, name: input.name, ...connection, status: "CONNECTED", lastTestedAt: new Date()
+    }, select: { id: true, name: true, type: true, host: true, port: true, database: true, username: true, status: true, lastTestedAt: true, createdAt: true } });
     res.status(201).json({ success: true, data: source });
   } catch (e) { next(e); }
 });
