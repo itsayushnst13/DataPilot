@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 import secrets
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
