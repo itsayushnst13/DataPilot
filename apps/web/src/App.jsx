@@ -42,11 +42,44 @@ export default function App(){
  {active==="Database Explorer"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Database explorer</h2><p>Tables and columns visible to your database user.</p></div><select className="select-button" value={selectedSource} onChange={e=>loadSchema(e.target.value)}><option value="">Select source</option>{sources.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>{schema.length?<DataTable columns={["table_schema","table_name","column_name","data_type"]} rows={schema.map(x=>[x.table_schema,x.table_name,x.column_name,x.data_type])}/>:<Empty icon={Table2} title="No schema loaded" text="Choose a source or add one first." action={()=>setActive("Data Sources")}/>}</section>}
  {active==="SQL Playground"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>SQL playground</h2><p>Single read-only SELECT; 10-second timeout; maximum 500 returned rows.</p></div><select className="select-button" value={selectedSource} onChange={e=>setSelectedSource(e.target.value)}><option value="">Select source</option>{sources.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div><form onSubmit={runSql}><textarea className="sql-editor" value={sql} onChange={e=>setSql(e.target.value)} spellCheck="false"/><div className="form-actions"><span className="form-hint">Only SELECT / WITH queries are accepted.</span><button className="primary-button" disabled={busy||!selectedSource}><Play size={14}/> Run query</button></div></form>{sqlResult&&<><p className="result-meta">{sqlResult.rowCount} rows returned {sqlResult.truncated?"(first 500 shown)":""}</p><DataTable columns={sqlResult.columns} rows={sqlResult.rows}/></>}</section>}
  {active==="Investigations"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Investigation history</h2><p>Review SQL, evidence, answers and failures.</p></div><button className="icon-button" onClick={refresh}><RefreshCw size={16}/></button></div><InvestigationList items={investigations} select={setSelected}/>{selected&&<InvestigationDetail item={investigations.find(x=>x.id===selected.id)||selected}/>}</section>}
- {active==="Reports"&&<section className="panel workspace-panel"><Empty icon={FileBarChart2} title="Reports" text="Completed investigation results are available in history. Scheduled PDF/CSV report exports are planned next." action={()=>setActive("Investigations")}/></section>}
+ {active==="Reports"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Investigation reports</h2><p>Export completed findings, executed SQL and evidence as Markdown reports.</p></div><button className="icon-button" onClick={refresh}><RefreshCw size={16}/></button></div>{investigations.filter(x=>x.status==="COMPLETED").length?investigations.filter(x=>x.status==="COMPLETED").map(item=><div className="report-row" key={item.id}><div className="investigation-icon purple"><FileBarChart2 size={16}/></div><div className="source-copy"><strong>{item.title}</strong><span>{new Date(item.completedAt||item.createdAt).toLocaleString()}</span></div><button className="secondary-button" onClick={()=>downloadReport(item)}>Export .md</button></div>):<Empty icon={FileBarChart2} title="No completed reports" text="Complete an AI investigation to export its answer, SQL and evidence." action={()=>setActive("AI Analyst")}/>}</section>}
  {active==="Agent Monitor"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Multi-agent workflow</h2><p>Each investigation follows four observable stages.</p></div><span className="status-pill completed">Service topology</span></div><Pipeline/><p className="form-hint">Individual step timings and token/cost telemetry require the next observability phase.</p></section>}
  {active==="Settings"&&<section className="panel workspace-panel"><h2>Workspace settings</h2><div className="settings-grid"><div><span>Account</span><strong>{user.name}</strong><small>{user.email}</small></div><div><span>Workspace</span><strong>{workspace?.name}</strong><small>{workspace?.slug}</small></div><div><span>Data sources</span><strong>{sources.length}</strong></div><div><span>Investigations</span><strong>{investigations.length}</strong></div></div><button className="secondary-button danger-button" onClick={logout}><LogOut size={14}/> Sign out</button></section>}
  </div></main></div>;
 }
+
+function downloadReport(item) {
+ const content = [
+  "# " + item.title,
+  "",
+  "**Status:** " + item.status,
+  "**Created:** " + new Date(item.createdAt).toISOString(),
+  "",
+  "## Question",
+  item.question,
+  "",
+  "## Findings",
+  item.answer || "No answer recorded.",
+  "",
+  "## Executed SQL",
+  "```sql",
+  item.sql || "-- No SQL recorded",
+  "```",
+  "",
+  "## Evidence",
+  "```json",
+  JSON.stringify(item.evidence || [], null, 2),
+  "```"
+ ].join("\n");
+ const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+ const url = URL.createObjectURL(blob);
+ const anchor = document.createElement("a");
+ anchor.href = url;
+ anchor.download = "datapilot-report-" + item.id + ".md";
+ anchor.click();
+ URL.revokeObjectURL(url);
+}
+
 function Metric({label,value,note,icon:Icon}){return <article className="metric-card"><div className="metric-top"><span>{label}</span><Icon size={16}/></div><div className="metric-value">{value}</div><div className="metric-foot">{note}</div></article>}
 function Step({n,title,text,done,click}){return <button className="setup-step" onClick={click}><span className={`step-number ${done?"step-done":""}`}>{done?<CheckCircle2 size={16}/>:n}</span><span className="step-copy"><strong>{title}</strong><small>{text}</small></span><ArrowUpRight size={15}/></button>}
 function Ask({question,setQuestion,submit,busy}){return <section className="ask-panel"><div className="ask-icon"><Sparkles size={19}/></div><div className="ask-content"><h2>Ask your data anything</h2><p>Get a traceable answer from your PostgreSQL database.</p><form className="ask-form" onSubmit={e=>{e.preventDefault();submit();}}><input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="e.g. Why did revenue decline last month?"/><button disabled={busy||!question.trim()}>{busy?<LoaderCircle className="spin" size={14}/>:<Play size={14}/>} Run analysis</button></form><div className="suggestions">{prompts.map(p=><button key={p} onClick={()=>{setQuestion(p);submit(p);}}>{p}<ArrowUpRight size={12}/></button>)}</div></div></section>}
