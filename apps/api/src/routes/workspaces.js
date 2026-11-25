@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
@@ -15,7 +16,7 @@ router.post("/", async (req, res, next) => {
   try {
     const { name } = z.object({ name: z.string().trim().min(2).max(80) }).parse(req.body);
     const workspace = await prisma.workspace.create({
-      data: { name, slug: "ws-" + crypto.randomUUID(), createdById: req.user.id, memberships: { create: { userId: req.user.id, role: "ADMIN" } } }
+      data: { name, slug: "ws-" + randomUUID(), createdById: req.user.id, memberships: { create: { userId: req.user.id, role: "ADMIN" } } }
     });
     res.status(201).json({ success: true, data: workspace });
   } catch (e) { next(e); }
