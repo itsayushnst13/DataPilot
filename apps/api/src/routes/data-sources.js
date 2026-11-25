@@ -1,3 +1,4 @@
+import { randomBytes, createCipheriv } from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
@@ -16,8 +17,8 @@ const schema = z.object({
 function encrypt(value) {
   const key = Buffer.from(process.env.DATA_ENCRYPTION_KEY || "", "hex");
   if (key.length !== 32) throw new Error("DATA_ENCRYPTION_KEY must be a 32-byte hex key");
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
   const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
   return [iv.toString("hex"), cipher.getAuthTag().toString("hex"), encrypted.toString("hex")].join(":");
 }
