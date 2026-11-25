@@ -11,7 +11,7 @@ test("health endpoint returns service status", async () => {
     const body = await response.json();
     assert.equal(response.status, 200);
     assert.equal(body.success, true);
-    assert.equal(body.data.status, "healthy");
+    assert.equal(body.data.status, "alive");
   } finally {
     server.close();
   }
