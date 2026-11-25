@@ -3,12 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "workspaces": ["apps/web", "apps/api"],
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace @datapilot/api\" \"npm run dev --workspace @datapilot/web\"",
     "install:all": "npm install",
     "build": "npm run build --workspace @datapilot/web",
-    "test": "npm run test --workspace @datapilot/api && npm run test --workspace @datapilot/web"
+    "test": "npm run test --workspace @datapilot/api && npm run test --workspace @datapilot/web",
+    "db:generate": "npm run db:generate --workspace @datapilot/api",
+    "db:push": "npm run db:push --workspace @datapilot/api",
+    "db:studio": "npm run db:studio --workspace @datapilot/api"
   },
-  "devDependencies": { "concurrently": "^9.1.2" }
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
 }
