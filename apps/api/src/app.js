@@ -15,6 +15,7 @@ import { apiLimiter, authLimiter } from "./middleware/rate-limit.js";
 export function createApp() {
   const app = express();
   app.disable("x-powered-by");
+  if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
   app.use(helmet());
   app.use(cors({ origin: process.env.WEB_ORIGIN || "http://localhost:5173", credentials: false }));
   app.use(express.json({ limit: "1mb" }));
