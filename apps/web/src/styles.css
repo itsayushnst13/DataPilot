@@ -29,3 +29,5 @@
 .result-chart{margin:18px 0;padding:14px;background:#0e1627;border:1px solid #2b3851;border-radius:8px}.result-chart .subheading{margin-top:0}
 
 .report-row{display:flex;align-items:center;gap:12px;padding:14px 2px;border-bottom:1px solid #273249}.report-row .source-copy{flex:1}.report-row .secondary-button{margin:0}
+
+.analyst-source{display:flex;align-items:center;gap:12px;margin:12px 0 18px;color:#9ba8bd;font-size:10px}.analyst-source .select-button{min-width:180px}
