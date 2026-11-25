@@ -1,3 +1,4 @@
+import { createDecipheriv } from "node:crypto";
 import pg from "pg";
 const { Client } = pg;
 
@@ -5,7 +6,7 @@ function decrypt(value) {
   const [ivHex, tagHex, dataHex] = value.split(":");
   const key = Buffer.from(process.env.DATA_ENCRYPTION_KEY || "", "hex");
   if (key.length !== 32) throw new Error("DATA_ENCRYPTION_KEY must be a 32-byte hex key");
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(ivHex, "hex"));
+  const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(ivHex, "hex"));
   decipher.setAuthTag(Buffer.from(tagHex, "hex"));
   return Buffer.concat([decipher.update(Buffer.from(dataHex, "hex")), decipher.final()]).toString("utf8");
 }
