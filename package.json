@@ -1,0 +1,14 @@
+{
+  "name": "datapilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/web", "apps/api"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace @datapilot/api\" \"npm run dev --workspace @datapilot/web\"",
+    "install:all": "npm install",
+    "build": "npm run build --workspace @datapilot/web",
+    "test": "npm run test --workspace @datapilot/api && npm run test --workspace @datapilot/web"
+  },
+  "devDependencies": { "concurrently": "^9.1.2" }
+}
