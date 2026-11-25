@@ -1,153 +1,56 @@
-import { useState } from "react";
-import {
-  Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, ChevronDown,
-  CircleHelp, Clock3, Database, FileBarChart2, LayoutDashboard, Menu,
-  MessageSquareText, MoreHorizontal, Plus, Search, Settings, ShieldCheck,
-  Sparkles, Table2, Workflow, X
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Activity, ArrowUpRight, BarChart3, Bell, CheckCircle2, Clock3, Database, FileBarChart2, LayoutDashboard, LoaderCircle, LogOut, Menu, MessageSquareText, Play, Plus, RefreshCw, Settings, ShieldCheck, Sparkles, Table2, Workflow, X, AlertCircle } from "lucide-react";
+import { api, unwrap } from "./lib/api.js";
 
-const navigation = [
-  { label: "Overview", icon: LayoutDashboard },
-  { label: "AI Analyst", icon: MessageSquareText },
-  { label: "Data Sources", icon: Database },
-  { label: "Database Explorer", icon: Table2 },
-  { label: "SQL Playground", icon: BarChart3 },
-  { label: "Investigations", icon: Workflow },
-  { label: "Reports", icon: FileBarChart2 },
-  { label: "Agent Monitor", icon: Activity }
-];
+const nav=[["Overview",LayoutDashboard],["AI Analyst",MessageSquareText],["Data Sources",Database],["Database Explorer",Table2],["SQL Playground",BarChart3],["Investigations",Workflow],["Reports",FileBarChart2],["Agent Monitor",Activity]];
+const prompts=["Why did revenue change last month?","Which products generate the most revenue?","Show monthly sales trends"];
 
-const metrics = [
-  { label: "Total revenue", value: "$284,592", change: "+12.8%", positive: true, note: "vs. previous 30 days" },
-  { label: "Total orders", value: "8,549", change: "+8.2%", positive: true, note: "vs. previous 30 days" },
-  { label: "Active customers", value: "5,284", change: "+4.6%", positive: true, note: "vs. previous 30 days" },
-  { label: "Average order value", value: "$33.29", change: "-2.1%", positive: false, note: "vs. previous 30 days" }
-];
-
-const questions = [
-  "Why did revenue change last month?",
-  "Which products generate the most revenue?",
-  "Compare monthly revenue over six months"
-];
-
-function App() {
-  const [active, setActive] = useState("Overview");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [question, setQuestion] = useState("");
-
-  const submitQuestion = (event) => {
-    event.preventDefault();
-    if (!question.trim()) return;
-    setActive("AI Analyst");
-  };
-
-  return (
-    <div className="app-shell">
-      {sidebarOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
-      <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
-        <div className="brand">
-          <div className="brand-mark"><BarChart3 size={20} /></div>
-          <div><strong>DataPilot</strong><span>INTELLIGENCE PLATFORM</span></div>
-          <button className="icon-button mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><X size={18} /></button>
-        </div>
-        <button className="workspace-switch">
-          <div className="workspace-avatar">A</div>
-          <div className="workspace-copy"><strong>Acme Corporation</strong><span>Free workspace</span></div>
-          <ChevronDown size={15} />
-        </button>
-        <div className="nav-label">WORKSPACE</div>
-        <nav className="nav-list" aria-label="Main navigation">
-          {navigation.map(({ label, icon: Icon }) => (
-            <button key={label} className={`nav-item ${active === label ? "active" : ""}`} onClick={() => { setActive(label); setSidebarOpen(false); }}>
-              <Icon size={18} strokeWidth={1.8} /><span>{label}</span>
-              {label === "Agent Monitor" && <span className="live-dot" />}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-spacer" />
-        <div className="usage-card">
-          <div className="usage-heading"><span>Monthly usage</span><span>72%</span></div>
-          <div className="usage-track"><span /></div>
-          <p>72 of 100 AI investigations used</p>
-          <button onClick={() => setActive("Settings")}>Manage plan <ArrowUpRight size={13} /></button>
-        </div>
-        <button className={`nav-item settings-link ${active === "Settings" ? "active" : ""}`} onClick={() => setActive("Settings")}><Settings size={18} /><span>Settings</span></button>
-        <div className="profile">
-          <div className="profile-avatar">AG</div>
-          <div className="profile-copy"><strong>Ayush Gupta</strong><span>Administrator</span></div>
-          <MoreHorizontal size={18} />
-        </div>
-      </aside>
-
-      <main className="main-area">
-        <header className="topbar">
-          <div className="breadcrumbs"><button className="icon-button menu-toggle" onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={19} /></button><span>Workspace</span><span className="crumb-slash">/</span><strong>{active}</strong></div>
-          <div className="topbar-actions">
-            <div className="connection-status"><span /> Demo data connected</div>
-            <button className="icon-button" aria-label="Search"><Search size={18} /></button>
-            <button className="icon-button notification-button" aria-label="Notifications"><Bell size={18} /><i /></button>
-            <div className="top-avatar">AG</div>
-          </div>
-        </header>
-
-        <div className="page-content">
-          <section className="welcome-row">
-            <div><div className="eyebrow"><span className="eyebrow-line" /> MONDAY, NOVEMBER 25, 2026</div><h1>{active === "Overview" ? "Good evening, Ayush" : active}</h1><p>{active === "Overview" ? "Here's what's happening across your business today." : "Explore your business intelligence workspace."}</p></div>
-            <button className="primary-button" onClick={() => setActive("AI Analyst")}><Plus size={17} /> New investigation</button>
-          </section>
-
-          {active === "Overview" ? (
-            <>
-              <section className="metric-grid">
-                {metrics.map((metric) => <article className="metric-card" key={metric.label}><div className="metric-top"><span>{metric.label}</span><button aria-label={`More about ${metric.label}`}><MoreHorizontal size={18} /></button></div><div className="metric-value">{metric.value}</div><div className="metric-foot"><span className={metric.positive ? "change positive" : "change negative"}>{metric.positive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}{metric.change}</span><span>{metric.note}</span></div></article>)}
-              </section>
-
-              <section className="content-grid">
-                <article className="panel revenue-panel">
-                  <div className="panel-header"><div><h2>Revenue overview</h2><p>Revenue performance over the last 6 months</p></div><button className="select-button">Last 6 months <ChevronDown size={14} /></button></div>
-                  <div className="chart-legend"><span><i className="legend-dot revenue-dot" /> Revenue</span><span><i className="legend-dot orders-dot" /> Orders</span></div>
-                  <div className="chart-wrap">
-                    <div className="y-labels"><span>$60k</span><span>$45k</span><span>$30k</span><span>$15k</span><span>$0</span></div>
-                    <div className="chart-main">
-                      <div className="grid-lines"><i /><i /><i /><i /><i /></div>
-                      <svg viewBox="0 0 700 220" preserveAspectRatio="none" role="img" aria-label="Illustrative demo revenue trend chart">
-                        <defs><linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#6d7df4" stopOpacity=".22" /><stop offset="100%" stopColor="#6d7df4" stopOpacity="0" /></linearGradient></defs>
-                        <path d="M0 166 C45 150 55 154 95 137 S160 145 190 113 S260 125 285 98 S350 115 380 83 S445 100 475 65 S540 85 570 54 S640 65 700 24 L700 220 L0 220Z" fill="url(#revenueFill)" />
-                        <path d="M0 166 C45 150 55 154 95 137 S160 145 190 113 S260 125 285 98 S350 115 380 83 S445 100 475 65 S540 85 570 54 S640 65 700 24" fill="none" stroke="#7182f5" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
-                        <path d="M0 188 C50 183 60 175 95 181 S150 168 190 176 S250 162 285 169 S340 154 380 163 S440 148 475 154 S540 137 570 145 S640 130 700 126" fill="none" stroke="#9aa5b5" strokeWidth="2" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
-                      </svg>
-                      <div className="x-labels"><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span></div>
-                    </div>
-                  </div>
-                  <div className="demo-note"><span /> Demo visualization · Connect a database to view live metrics</div>
-                </article>
-
-                <article className="panel activity-panel">
-                  <div className="panel-header"><div><h2>Recent investigations</h2><p>Latest AI-powered analyses</p></div><button className="text-button" onClick={() => setActive("Investigations")}>View all <ArrowUpRight size={14} /></button></div>
-                  <div className="investigation-list">
-                    <div className="investigation-item"><div className="investigation-icon purple"><Sparkles size={16} /></div><div className="investigation-copy"><strong>Revenue performance analysis</strong><span><Clock3 size={12} /> 12 minutes ago</span></div><span className="status-pill completed">Completed</span></div>
-                    <div className="investigation-item"><div className="investigation-icon blue"><BarChart3 size={16} /></div><div className="investigation-copy"><strong>Top product categories</strong><span><Clock3 size={12} /> 1 hour ago</span></div><span className="status-pill completed">Completed</span></div>
-                    <div className="investigation-item"><div className="investigation-icon amber"><Activity size={16} /></div><div className="investigation-copy"><strong>Customer retention trends</strong><span><Clock3 size={12} /> Yesterday</span></div><span className="status-pill review">In review</span></div>
-                  </div>
-                </article>
-              </section>
-
-              <section className="ask-panel">
-                <div className="ask-icon"><Sparkles size={19} /></div>
-                <div className="ask-content"><h2>Ask your data anything</h2><p>Your AI analyst can investigate trends, uncover insights, and explain what's driving your business.</p>
-                  <form className="ask-form" onSubmit={submitQuestion}><input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="e.g. Why did revenue decline last month?" aria-label="Ask your data" /><button type="submit" disabled={!question.trim()}>Start analysis <ArrowUpRight size={15} /></button></form>
-                  <div className="suggestions">{questions.map((item) => <button key={item} onClick={() => { setQuestion(item); setActive("AI Analyst"); }}>{item} <ArrowUpRight size={12} /></button>)}</div>
-                </div>
-              </section>
-              <footer className="page-footer"><span><ShieldCheck size={14} /> Your data stays secure and private</span><span><CircleHelp size={14} /> DataPilot v0.1.0 · Phase 1</span></footer>
-            </>
-          ) : (
-            <section className="panel placeholder-panel"><div className="placeholder-icon"><Sparkles size={24} /></div><h2>{active}</h2><p>This workspace section is part of the DataPilot roadmap. Its functionality will be implemented in upcoming phases.</p><button className="secondary-button" onClick={() => setActive("Overview")}>Back to overview</button></section>
-          )}
-        </div>
-      </main>
-    </div>
-  );
+function Auth({onAuth}){
+ const [mode,setMode]=useState("login"),[name,setName]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
+ async function submit(e){e.preventDefault();setBusy(true);setError("");try{onAuth(unwrap(await api.post("/auth/"+mode,{name,email,password})));}catch(err){setError(err.response?.data?.error?.message||"Authentication failed. Check API and PostgreSQL.");}finally{setBusy(false);}}
+ return <div className="auth-screen"><div className="auth-card"><Brand/><div className="auth-intro"><div className="eyebrow">YOUR AUTONOMOUS DATA ANALYST</div><h1>{mode==="login"?"Welcome back":"Create your workspace"}</h1><p>Ask business questions and get answers backed by your PostgreSQL data.</p></div><form className="auth-form" onSubmit={submit}>{mode==="register"&&<label>Your name<input required minLength="2" value={name} onChange={e=>setName(e.target.value)}/></label>}<label>Work email<input required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com"/></label><label>Password<input required type="password" minLength={mode==="register"?10:1} value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<div className="inline-error">{error}</div>}<button className="primary-button auth-submit" disabled={busy}>{busy?"Please wait…":mode==="login"?"Sign in":"Create account"}</button></form><p className="auth-switch">{mode==="login"?"New to DataPilot?":"Already registered?"} <button onClick={()=>setMode(mode==="login"?"register":"login")}>{mode==="login"?"Create account":"Sign in"}</button></p><div className="auth-foot"><ShieldCheck size={14}/> Database credentials are encrypted before storage.</div></div></div>;
 }
+function Brand(){return <div className="brand"><div className="brand-mark"><BarChart3 size={20}/></div><div><strong>DataPilot</strong><span>INTELLIGENCE PLATFORM</span></div></div>;}
 
-export default App;
+export default function App(){
+ const [token,setToken]=useState(localStorage.getItem("datapilot_token")),[user,setUser]=useState(null),[workspaces,setWorkspaces]=useState([]),[workspaceId,setWorkspaceId]=useState(localStorage.getItem("datapilot_workspace")||"");
+ const [sources,setSources]=useState([]),[investigations,setInvestigations]=useState([]),[active,setActive]=useState("Overview"),[mobile,setMobile]=useState(false);
+ const [question,setQuestion]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState(""),[sourceOpen,setSourceOpen]=useState(false);
+ const [source,setSource]=useState({name:"",host:"localhost",port:5432,database:"",username:"",password:""}),[selectedSource,setSelectedSource]=useState(""),[schema,setSchema]=useState([]),[sql,setSql]=useState("SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog','information_schema') LIMIT 100"),[sqlResult,setSqlResult]=useState(null),[selected,setSelected]=useState(null);
+ const workspace=useMemo(()=>workspaces.find(w=>w.id===workspaceId),[workspaces,workspaceId]);
+ const completed=investigations.filter(x=>x.status==="COMPLETED").length,running=investigations.filter(x=>["RUNNING","QUEUED"].includes(x.status)).length;
+ function auth(data){localStorage.setItem("datapilot_token",data.token);setToken(data.token);setUser(data.user);setWorkspaces(data.workspaces||[]);if(data.workspaces?.[0]){setWorkspaceId(data.workspaces[0].id);localStorage.setItem("datapilot_workspace",data.workspaces[0].id);}}
+ function logout(){localStorage.removeItem("datapilot_token");localStorage.removeItem("datapilot_workspace");setToken(null);setUser(null);setWorkspaces([]);}
+ useEffect(()=>{if(!token)return;let live=true;Promise.all([api.get("/auth/me"),api.get("/workspaces")]).then(([a,b])=>{if(!live)return;setUser(unwrap(a));const list=unwrap(b)||[];setWorkspaces(list);const pick=list.find(x=>x.id===localStorage.getItem("datapilot_workspace"))||list[0];if(pick){setWorkspaceId(pick.id);localStorage.setItem("datapilot_workspace",pick.id);}}).catch(logout);return()=>{live=false;};},[token]);
+ async function refresh(){if(!workspaceId)return;try{const [a,b]=await Promise.all([api.get("/data-sources/"+workspaceId),api.get("/investigations/"+workspaceId)]);setSources(unwrap(a)||[]);setInvestigations(unwrap(b)||[]);}catch(e){setNotice(e.response?.data?.error?.message||"Unable to refresh workspace.");}}
+ useEffect(()=>{if(token&&workspaceId)refresh();},[token,workspaceId]);
+ useEffect(()=>{if(!running)return;const t=setInterval(refresh,3500);return()=>clearInterval(t);},[running,workspaceId]);
+ async function addSource(e){e.preventDefault();setBusy(true);try{await api.post("/data-sources/"+workspaceId,source);setSourceOpen(false);setSource({name:"",host:"localhost",port:5432,database:"",username:"",password:""});await refresh();setNotice("Connection details saved and encrypted.");}catch(err){setNotice(err.response?.data?.error?.message||"Could not save connection.");}finally{setBusy(false);}}
+ async function loadSchema(id){setSelectedSource(id);setBusy(true);try{setSchema(unwrap(await api.get("/sql/"+workspaceId+"/"+id+"/schema"))||[]);setActive("Database Explorer");}catch(e){setNotice(e.response?.data?.error?.message||"Could not load schema.");}finally{setBusy(false);}}
+ async function runSql(e){e?.preventDefault();if(!selectedSource){setNotice("Select a data source first.");return;}setBusy(true);try{setSqlResult(unwrap(await api.post("/sql/"+workspaceId+"/"+selectedSource+"/query",{query:sql})));setNotice("");}catch(err){setSqlResult(null);setNotice(err.response?.data?.error?.message||"SQL query failed.");}finally{setBusy(false);}}
+ async function investigate(q=question){if(!q.trim())return;if(!sources.length){setActive("Data Sources");setNotice("Connect a PostgreSQL source before running an investigation.");return;}setBusy(true);try{const item=unwrap(await api.post("/investigations/"+workspaceId,{question:q}));setQuestion("");setSelected(item);setActive("Investigations");await refresh();}catch(e){setNotice(e.response?.data?.error?.message||"Could not start investigation.");}finally{setBusy(false);}}
+ async function newWorkspace(){const name=window.prompt("Workspace name");if(!name?.trim())return;try{const w=unwrap(await api.post("/workspaces",{name}));setWorkspaces(v=>[...v,w]);setWorkspaceId(w.id);localStorage.setItem("datapilot_workspace",w.id);}catch(e){setNotice("Could not create workspace.");}}
+ if(!token)return <Auth onAuth={auth}/>;if(!user)return <div className="loading-screen"><LoaderCircle className="spin"/> Loading DataPilot…</div>;
+ return <div className="app-shell">{mobile&&<button className="mobile-scrim" onClick={()=>setMobile(false)}/>}<aside className={`sidebar ${mobile?"sidebar-open":""}`}><Brand/><button className="workspace-switch" onClick={newWorkspace}><div className="workspace-avatar">{workspace?.name?.[0]||"W"}</div><div className="workspace-copy"><strong>{workspace?.name||"Workspace"}</strong><span>{workspaces.length} workspace(s) · switch/create</span></div><Plus size={15}/></button><div className="nav-label">WORKSPACE</div><nav className="nav-list">{nav.map(([label,Icon])=><button key={label} className={`nav-item ${active===label?"active":""}`} onClick={()=>{setActive(label);setMobile(false);}}><Icon size={18}/><span>{label}</span></button>)}</nav><div className="sidebar-spacer"/><div className="usage-card"><div className="usage-heading"><span>Investigations</span><span>{completed} done</span></div><div className="usage-track"><span style={{width:Math.min(100,completed*10)+"%"}}/></div><p>{running} currently running</p><button onClick={()=>setActive("Investigations")}>View activity <ArrowUpRight size={13}/></button></div><button className="nav-item settings-link" onClick={()=>setActive("Settings")}><Settings size={18}/><span>Settings</span></button><div className="profile"><div className="profile-avatar">{user.name?.[0]}</div><div className="profile-copy"><strong>{user.name}</strong><span>{user.email}</span></div><button className="icon-button" onClick={logout} aria-label="Sign out"><LogOut size={16}/></button></div></aside>
+ <main className="main-area"><header className="topbar"><div className="breadcrumbs"><button className="icon-button menu-toggle" onClick={()=>setMobile(true)}><Menu size={19}/></button><span>Workspace</span><span className="crumb-slash">/</span><strong>{active}</strong></div><div className="topbar-actions"><div className="connection-status"><span style={{background:sources.length?"#43c99a":"#e0a35e"}}/>{sources.length?sources.length+" source(s)":"No data source"}</div><button className="icon-button" onClick={refresh} aria-label="Refresh"><RefreshCw size={16}/></button><div className="top-avatar">{user.name?.[0]}</div></div></header>
+ <div className="page-content"><section className="welcome-row"><div><div className="eyebrow"><span className="eyebrow-line"/> DATA INTELLIGENCE WORKSPACE</div><h1>{active==="Overview"?"Good evening, "+user.name?.split(" ")[0]:active}</h1><p>{active==="Overview"?"Your business intelligence, connected to your data.":"Explore and operate your DataPilot workspace."}</p></div><button className="primary-button" onClick={()=>setActive("AI Analyst")}><Plus size={16}/> New investigation</button></section>
+ {notice&&<div className="notice-banner"><AlertCircle size={15}/><span>{notice}</span><button onClick={()=>setNotice("")}><X size={14}/></button></div>}
+ {active==="Overview"&&<><div className="metric-grid"><Metric label="Data sources" value={sources.length} note="PostgreSQL connections" icon={Database}/><Metric label="Investigations" value={investigations.length} note="Total AI analyses" icon={Workflow}/><Metric label="Completed" value={completed} note="Results available" icon={CheckCircle2}/><Metric label="In progress" value={running} note="Agent workflows running" icon={Activity}/></div><div className="content-grid"><section className="panel"><div className="panel-header"><div><h2>Get started with DataPilot</h2><p>Connect your data, explore the schema, then ask questions.</p></div><Sparkles size={18}/></div><div className="setup-steps"><Step n="01" title="Connect PostgreSQL" text="Add a read-only database connection." done={sources.length>0} click={()=>setActive("Data Sources")}/><Step n="02" title="Explore your schema" text="Inspect tables and columns." done={schema.length>0} click={()=>sources[0]&&loadSchema(sources[0].id)}/><Step n="03" title="Run an investigation" text="Get SQL, evidence and findings." done={completed>0} click={()=>setActive("AI Analyst")}/></div></section><section className="panel"><div className="panel-header"><div><h2>Recent investigations</h2><p>Latest AI-powered analyses</p></div><button className="text-button" onClick={()=>setActive("Investigations")}>View all <ArrowUpRight size={14}/></button></div><InvestigationList items={investigations.slice(0,5)} select={setSelected}/></section></div><Ask question={question} setQuestion={setQuestion} submit={investigate} busy={busy}/></>}
+ {active==="AI Analyst"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Ask your data anything</h2><p>Planner → SQL executor → Python analytics → evidence verifier.</p></div><Sparkles/></div><Ask question={question} setQuestion={setQuestion} submit={investigate} busy={busy}/><Pipeline/></section>}
+ {active==="Data Sources"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>PostgreSQL data sources</h2><p>Credentials are encrypted with AES-256-GCM before storage.</p></div><button className="primary-button" onClick={()=>setSourceOpen(v=>!v)}><Plus size={15}/> Add source</button></div>{sourceOpen&&<form className="source-form" onSubmit={addSource}><label>Connection name<input required value={source.name} onChange={e=>setSource({...source,name:e.target.value})}/></label><div className="form-grid">{[["host","Host"],["port","Port"],["database","Database"],["username","Username"],["password","Password"]].map(([k,l])=><label key={k}>{l}<input required type={k==="password"?"password":"text"} value={source[k]} onChange={e=>setSource({...source,[k]:k==="port"?Number(e.target.value):e.target.value})}/></label>)}</div><div className="form-actions"><button type="button" className="secondary-button" onClick={()=>setSourceOpen(false)}>Cancel</button><button className="primary-button" disabled={busy}>{busy?"Saving…":"Save connection"}</button></div><p className="form-hint">Use a dedicated PostgreSQL user with SELECT-only permissions.</p></form>}<div className="data-source-list">{sources.length?sources.map(s=><div className="source-row" key={s.id}><Database size={19}/><div className="source-copy"><strong>{s.name}</strong><span>{s.username}@{s.host}:{s.port}/{s.database}</span></div><span className="status-pill completed">{s.status}</span><button className="secondary-button" onClick={()=>loadSchema(s.id)}>Explore schema</button></div>):<Empty icon={Database} title="No data sources" text="Add a PostgreSQL connection to begin." action={()=>setSourceOpen(true)}/>}</div></section>}
+ {active==="Database Explorer"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Database explorer</h2><p>Tables and columns visible to your database user.</p></div><select className="select-button" value={selectedSource} onChange={e=>loadSchema(e.target.value)}><option value="">Select source</option>{sources.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>{schema.length?<DataTable columns={["table_schema","table_name","column_name","data_type"]} rows={schema.map(x=>[x.table_schema,x.table_name,x.column_name,x.data_type])}/>:<Empty icon={Table2} title="No schema loaded" text="Choose a source or add one first." action={()=>setActive("Data Sources")}/>}</section>}
+ {active==="SQL Playground"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>SQL playground</h2><p>Single read-only SELECT; 10-second timeout; maximum 500 returned rows.</p></div><select className="select-button" value={selectedSource} onChange={e=>setSelectedSource(e.target.value)}><option value="">Select source</option>{sources.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div><form onSubmit={runSql}><textarea className="sql-editor" value={sql} onChange={e=>setSql(e.target.value)} spellCheck="false"/><div className="form-actions"><span className="form-hint">Only SELECT / WITH queries are accepted.</span><button className="primary-button" disabled={busy||!selectedSource}><Play size={14}/> Run query</button></div></form>{sqlResult&&<><p className="result-meta">{sqlResult.rowCount} rows returned {sqlResult.truncated?"(first 500 shown)":""}</p><DataTable columns={sqlResult.columns} rows={sqlResult.rows}/></>}</section>}
+ {active==="Investigations"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Investigation history</h2><p>Review SQL, evidence, answers and failures.</p></div><button className="icon-button" onClick={refresh}><RefreshCw size={16}/></button></div><InvestigationList items={investigations} select={setSelected}/>{selected&&<InvestigationDetail item={investigations.find(x=>x.id===selected.id)||selected}/>}</section>}
+ {active==="Reports"&&<section className="panel workspace-panel"><Empty icon={FileBarChart2} title="Reports" text="Completed investigation results are available in history. Scheduled PDF/CSV report exports are planned next." action={()=>setActive("Investigations")}/></section>}
+ {active==="Agent Monitor"&&<section className="panel workspace-panel"><div className="panel-header"><div><h2>Multi-agent workflow</h2><p>Each investigation follows four observable stages.</p></div><span className="status-pill completed">Service topology</span></div><Pipeline/><p className="form-hint">Individual step timings and token/cost telemetry require the next observability phase.</p></section>}
+ {active==="Settings"&&<section className="panel workspace-panel"><h2>Workspace settings</h2><div className="settings-grid"><div><span>Account</span><strong>{user.name}</strong><small>{user.email}</small></div><div><span>Workspace</span><strong>{workspace?.name}</strong><small>{workspace?.slug}</small></div><div><span>Data sources</span><strong>{sources.length}</strong></div><div><span>Investigations</span><strong>{investigations.length}</strong></div></div><button className="secondary-button danger-button" onClick={logout}><LogOut size={14}/> Sign out</button></section>}
+ </div></main></div>;
+}
+function Metric({label,value,note,icon:Icon}){return <article className="metric-card"><div className="metric-top"><span>{label}</span><Icon size={16}/></div><div className="metric-value">{value}</div><div className="metric-foot">{note}</div></article>}
+function Step({n,title,text,done,click}){return <button className="setup-step" onClick={click}><span className={`step-number ${done?"step-done":""}`}>{done?<CheckCircle2 size={16}/>:n}</span><span className="step-copy"><strong>{title}</strong><small>{text}</small></span><ArrowUpRight size={15}/></button>}
+function Ask({question,setQuestion,submit,busy}){return <section className="ask-panel"><div className="ask-icon"><Sparkles size={19}/></div><div className="ask-content"><h2>Ask your data anything</h2><p>Get a traceable answer from your PostgreSQL database.</p><form className="ask-form" onSubmit={e=>{e.preventDefault();submit();}}><input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="e.g. Why did revenue decline last month?"/><button disabled={busy||!question.trim()}>{busy?<LoaderCircle className="spin" size={14}/>:<Play size={14}/>} Run analysis</button></form><div className="suggestions">{prompts.map(p=><button key={p} onClick={()=>{setQuestion(p);submit(p);}}>{p}<ArrowUpRight size={12}/></button>)}</div></div></section>}
+function Pipeline(){return <div className="agent-pipeline">{[["Planner","Gemini · schema-grounded SQL"],["Executor","Express · read-only PostgreSQL"],["Analyst","Python · Pandas and NumPy"],["Verifier","Evidence-backed answer"]].map(([n,d],i)=><div className="pipeline-step" key={n}><span>{i+1}</span><div><strong>{n}</strong><small>{d}</small></div><CheckCircle2 size={16}/></div>)}</div>}
+function InvestigationList({items,select}){if(!items.length)return <div className="empty-state compact"><Workflow size={23}/><strong>No investigations yet</strong><p>Start from AI Analyst to run your first analysis.</p></div>;return <div className="investigation-list">{items.map(x=><button key={x.id} className="investigation-item investigation-button" onClick={()=>select(x)}><div className="investigation-icon purple"><Sparkles size={16}/></div><div className="investigation-copy"><strong>{x.title}</strong><span><Clock3 size={12}/>{new Date(x.createdAt).toLocaleString()}</span></div><span className={`status-pill ${x.status==="COMPLETED"?"completed":x.status==="FAILED"?"failed":"review"}`}>{x.status}</span></button>)}</div>}
+function InvestigationDetail({item}){return <div className="investigation-detail"><h2>{item.title}</h2><p className="form-hint">{item.status} · {item.completedAt?new Date(item.completedAt).toLocaleString():"Waiting for result"}</p>{item.answer&&<div className="answer-block"><strong>Analyst findings</strong><p>{item.answer}</p></div>}{item.error&&<div className="inline-error">{item.error}</div>}{item.sql&&<><strong className="subheading">Executed SQL</strong><pre className="sql-output">{item.sql}</pre></>}{item.evidence&&<><strong className="subheading">Evidence</strong><pre className="sql-output">{JSON.stringify(item.evidence,null,2)}</pre></>}</div>}
+function DataTable({columns,rows}){return <div className="table-scroll"><table><thead><tr>{columns.map(c=><th key={c}>{c}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{r.map((v,j)=><td key={j}>{v===null?"NULL":typeof v==="object"?JSON.stringify(v):String(v)}</td>)}</tr>)}</tbody></table></div>}
+function Empty({icon:Icon,title,text,action}){return <div className="empty-state"><Icon size={25}/><strong>{title}</strong><p>{text}</p>{action&&<button className="secondary-button" onClick={action}>Continue</button>}</div>}
