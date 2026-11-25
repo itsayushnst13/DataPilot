@@ -124,7 +124,7 @@ npm run dev
 - Web: http://localhost:5173
 - API health: http://localhost:4000/api/v1/health
 
-### 5. Start the agent service
+### 5. Start the durable investigation worker\n\nIn another terminal (keep Redis running):\n\n```bash\nnpm run worker\n```\n\nBullMQ retries failed investigations up to three times with exponential backoff.\n\n### 6. Start the agent service
 
 In a second terminal:
 ```bash
