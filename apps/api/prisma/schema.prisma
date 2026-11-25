@@ -36,6 +36,7 @@ model Membership {
   role        String    @default("ADMIN")
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  investigations Investigation[]
   createdAt   DateTime  @default(now())
 
   @@unique([userId, workspaceId])
@@ -69,6 +70,8 @@ model Investigation {
   status      String   @default("QUEUED")
   answer      String?
   sql         String?
+  dataSourceId String?
+  dataSource  DataSource? @relation(fields: [dataSourceId], references: [id], onDelete: SetNull)
   evidence    Json?
   chart       Json?
   error       String?
@@ -79,4 +82,5 @@ model Investigation {
   updatedAt   DateTime @updatedAt
 
   @@index([workspaceId, createdAt])
+  @@index([dataSourceId])
 }
