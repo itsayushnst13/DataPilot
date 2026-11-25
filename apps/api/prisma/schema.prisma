@@ -55,6 +55,7 @@ model DataSource {
   status      String   @default("PENDING")
   lastTestedAt DateTime?
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  investigations Investigation[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
