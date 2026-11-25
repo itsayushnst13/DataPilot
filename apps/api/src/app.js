@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import pino from "pino-http";
+import cookieParser from "cookie-parser";
 import { ZodError } from "zod";
 import authRoutes from "./routes/auth.js";
 import workspaceRoutes from "./routes/workspaces.js";
@@ -17,8 +18,16 @@ export function createApp() {
   app.disable("x-powered-by");
   if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
   app.use(helmet());
-  app.use(cors({ origin: process.env.WEB_ORIGIN || "http://localhost:5173", credentials: false }));
+  const webOrigin = process.env.WEB_ORIGIN || "http://localhost:5173";
+  app.use(cors({ origin: webOrigin, credentials: true }));
+  app.use(cookieParser());
   app.use(express.json({ limit: "1mb" }));
+  app.use((req, res, next) => {
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && req.headers.origin && req.headers.origin !== webOrigin) {
+      return res.status(403).json({ success: false, error: { code: "ORIGIN_REJECTED", message: "Request origin is not allowed" } });
+    }
+    next();
+  });
   app.use(pino({ redact: ["req.headers.authorization", "req.body.password", "req.body.token"] }));
   app.use("/api/v1", apiLimiter);
 
