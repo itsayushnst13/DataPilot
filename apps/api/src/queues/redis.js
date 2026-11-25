@@ -9,3 +9,11 @@ export function getRedisConnection() {
   }
   return redisConnection;
 }
+
+export async function closeRedisConnection() {
+  if (redisConnection) {
+    const connection = redisConnection;
+    redisConnection = null;
+    await connection.quit();
+  }
+}
