@@ -9,7 +9,8 @@
     "test": "node --test",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "worker": "node --watch src/workers/investigation.worker.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
