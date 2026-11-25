@@ -141,7 +141,7 @@ uvicorn app.main:app --reload --app-dir services/agents --port 8000
 
 Agent health: http://localhost:8000/health
 
-## First run
+## Demo database\n\nTo try the application without using business data, create a separate PostgreSQL database and run `examples/demo-database.sql` in it. It creates sample customers, products, orders and order items.\n\nCreate a dedicated read-only login (replace the password and database name):\n\n```sql\nCREATE ROLE datapilot_reader LOGIN PASSWORD 'replace-this-password';\nGRANT CONNECT ON DATABASE datapilot_demo TO datapilot_reader;\nGRANT USAGE ON SCHEMA public TO datapilot_reader;\nGRANT SELECT ON ALL TABLES IN SCHEMA public TO datapilot_reader;\nALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datapilot_reader;\n```\n\nConnect DataPilot with the `datapilot_reader` credentials.\n\n## First run
 
 1. Register a DataPilot account.
 2. Add a PostgreSQL data source.
