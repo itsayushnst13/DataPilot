@@ -31,6 +31,12 @@ jobs:
       INTERNAL_SERVICE_TOKEN: ci-internal-token
     steps:
       - uses: actions/checkout@v4
+      - name: Validate production Compose configuration
+        run: |
+          cp .env.production.example .env.production
+          cp apps/api/.env.example apps/api/.env
+          cp services/agents/.env.example services/agents/.env
+          docker compose --env-file .env.production -f docker-compose.production.yml config --quiet
       - uses: actions/setup-node@v4
         with:
           node-version: 20
