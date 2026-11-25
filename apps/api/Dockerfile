@@ -5,6 +5,6 @@ COPY apps/api/package*.json ./apps/api/
 COPY apps/web/package*.json ./apps/web/
 RUN npm install
 COPY apps/api ./apps/api
-RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build npx prisma generate --schema=apps/api/prisma/schema.prisma
 EXPOSE 4000
 CMD ["npm", "run", "start", "--workspace", "@datapilot/api"]
