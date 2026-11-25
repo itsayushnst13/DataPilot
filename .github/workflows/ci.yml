@@ -27,3 +27,4 @@ jobs:
           python-version: "3.11"
       - run: pip install -r services/agents/requirements.txt
       - run: python -m compileall -q services/agents/app
+      - run: PYTHONPATH=services/agents python -m unittest discover -s services/agents/tests
