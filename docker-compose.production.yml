@@ -64,6 +64,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+      agents:
+        condition: service_healthy
     command: ["node", "apps/api/src/workers/investigation.worker.js"]
   agents:
     build:
